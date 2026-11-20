@@ -1,0 +1,1757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nihongo Kana & Vocabulary Master</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Poppins & Noto Sans JP -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Noto+Sans+Bengali:wght@400;500;600&family=Noto+Sans+JP:wght@500;700&family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: { extend: { colors: {
+                // accent (clay) – replaces indigo
+                indigo: { 50:'#FBF5F0',100:'#F3E6DC',200:'#E9D5C4',300:'#DDB89D',400:'#D08A66',500:'#C46B46',600:'#B85637',700:'#9C472C',800:'#7A3823',900:'#3A271D',950:'#241812' },
+                // secondary (ochre) – replaces pink
+                pink:   { 50:'#FAF5EA',100:'#F3E8CF',200:'#E8D5AA',300:'#DCC088',400:'#CCA564',500:'#B58A45',600:'#8F6A2E',700:'#745524',800:'#5A421C',900:'#3F2E14' },
+                // warm neutrals – replaces gray
+                gray:   { 50:'#FAF9F5',100:'#F0EEE6',200:'#E3E0D5',300:'#CFCCC0',400:'#B0AEA5',500:'#87867F',600:'#5E5D59',700:'#434240',800:'#2B2A27',900:'#1F1E1D' }
+            } } }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Inter', 'Noto Sans Bengali', 'Noto Sans JP', sans-serif;
+        }
+        #app-title, #chart-title, #vocab-title {
+            font-family: 'Source Serif 4', 'Noto Sans Bengali', Georgia, serif;
+            font-weight: 500;
+            letter-spacing: -0.01em;
+        }
+        #score-label, #streak-label, #mode-indicator {
+            text-transform: none;
+            letter-spacing: 0.01em;
+        }
+        /* শান্ত থিম: ভাসমান/গ্লো অ্যানিমেশন বন্ধ */
+        .animate-float, .animate-float-fast, .glow-card, .animate-bounce {
+            animation: none !important;
+        }
+        button:focus-visible {
+            outline: 2px solid #D97757;
+            outline-offset: 2px;
+        }
+        ::selection { background: #E9D5C4; color: #1F1E1D; }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
+        .japanese-font {
+            font-family: 'Noto Sans JP', sans-serif;
+        }
+        @keyframes popIn {
+            0% { transform: scale(0.7) translateY(10px); opacity: 0; }
+            100% { transform: scale(1) translateY(0); opacity: 1; }
+        }
+        .animate-pop {
+            animation: popIn 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-8px); }
+        }
+        .animate-float {
+            animation: floatSlow 4s ease-in-out infinite;
+        }
+        @keyframes floatFast {
+            0%, 100% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(2deg); }
+        }
+        .animate-float-fast {
+            animation: floatFast 3s ease-in-out infinite;
+        }
+        @keyframes floatBlob {
+            0%, 100% { transform: translateY(0px) scale(1); }
+            50% { transform: translateY(-20px) scale(1.05); }
+        }
+        .animate-blob1 {
+            animation: floatBlob 6s ease-in-out infinite;
+        }
+        .animate-blob2 {
+            animation: floatBlob 8s ease-in-out infinite reverse;
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
+            50% { box-shadow: 0 0 40px rgba(236, 72, 153, 0.6); }
+        }
+        .glow-card {
+            animation: pulseGlow 4s infinite;
+        }
+
+        /* চার্ট ও ভোকাবুলারির অক্ষরে ক্লিকের জন্য অ্যানিমেশন */
+        @keyframes charTap {
+            0% { transform: scale(1); }
+            35% { transform: scale(1.25) rotate(-4deg); }
+            70% { transform: scale(0.95) rotate(3deg); }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+        .animate-char-tap {
+            display: inline-block;
+            animation: charTap 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        /* নতুন ফিচারের স্টাইল (ডার্ক/লাইট দুই থিমেই কাজ করে) */
+        .xbtn{background:rgba(127,127,127,.14);border:1px solid rgba(127,127,127,.28);border-radius:9999px;padding:.4rem .75rem;font-size:.75rem;font-weight:600;transition:background .15s}
+        .xbtn:hover{background:rgba(127,127,127,.26)}
+        .xbtn.on{background:#B85637;border-color:#B85637;color:#fff}
+        .xpanel{background:rgba(127,127,127,.1);border:1px solid rgba(127,127,127,.25);border-radius:1rem;padding:.9rem}
+        .xinput{width:100%;background:rgba(127,127,127,.1);border:1px solid rgba(127,127,127,.3);border-radius:.75rem;padding:.5rem .8rem;font-size:.8rem;color:inherit;margin-bottom:.75rem}
+        .xbar{height:.5rem;border-radius:9999px;background:rgba(127,127,127,.25);overflow:hidden}
+        .xbar>i{display:block;height:100%;background:#B85637;transition:width .3s}
+    </style>
+</head>
+<body id="body" class="bg-[#262624] min-h-screen flex flex-col items-center justify-center p-4 text-gray-100 overflow-x-hidden transition-colors duration-300">
+
+    <!-- Main Container -->
+    <div id="main-card" class="max-w-xl w-full bg-[#30302E] border border-white/10 rounded-3xl shadow-lg p-6 sm:p-8 text-center relative overflow-hidden transition-all duration-300">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between mb-4 relative z-10 flex-wrap gap-2">
+            <div class="text-left">
+                <h1 id="app-title" class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2">
+                    <span class="inline-block">あ</span> Kana Master
+                </h1>
+                <p id="app-subtitle" class="text-xs sm:text-sm text-indigo-200 mt-1">Interactive Japanese Learning</p>
+            </div>
+            <div class="flex items-center gap-1.5 sm:gap-2 flex-wrap justify-end">
+                <!-- Reverse Mode Toggle Button -->
+                <button onclick="toggleReverseMode()" id="reverse-btn" class="bg-white/10 hover:bg-white/20 border border-white/10 px-2.5 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95" title="Toggle Normal / Reverse Mode">
+                    🔄 Normal
+                </button>
+                <!-- Drawing Canvas Toggle Button -->
+                <button onclick="toggleCanvas()" id="draw-btn" class="bg-white/10 hover:bg-white/20 border border-white/10 px-2.5 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95" title="Toggle Stroke Drawing Practice">
+                    ✍️ Draw
+                </button>
+                <!-- Language Toggle Button (EN / BN) -->
+                <button onclick="toggleLanguage()" id="lang-btn" class="bg-white/10 hover:bg-white/20 border border-white/10 px-2.5 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95" title="Toggle English / Bengali">
+                    🌐 BN
+                </button>
+                <!-- Theme Toggle Button -->
+                <button onclick="toggleTheme()" id="theme-btn" class="bg-white/10 hover:bg-white/20 border border-white/10 p-2.5 rounded-full transition text-sm flex items-center justify-center shadow-inner active:scale-95" title="Toggle Light/Dark Mode">
+                    ☀️
+                </button>
+                <!-- More options -->
+                <button onclick="toggleMore()" id="more-btn" class="xbtn" title="আরও অপশন">⋯ আরও</button>
+                <!-- Chart Button -->
+                <button onclick="toggleChart()" id="chart-btn" class="bg-white/10 hover:bg-white/20 border border-white/10 px-3 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95">
+                    📖 Chart
+                </button>
+                <!-- Vocabulary Button (Added next to Chart) -->
+                <button onclick="toggleVocabulary()" id="vocab-btn" class="bg-white/10 hover:bg-white/20 border border-white/10 px-3 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95">
+                    📚 Vocabulary
+                </button>
+                <!-- Sound Toggle -->
+                <button onclick="toggleSound()" id="sound-btn" class="bg-white/10 hover:bg-white/20 border border-white/10 p-2.5 rounded-full transition text-sm flex items-center justify-center shadow-inner active:scale-95" title="Toggle Sound">
+                    🔊
+                </button>
+            </div>
+        </div>
+
+        <!-- আরও অপশন প্যানেল -->
+        <div id="more-panel" class="xpanel hidden mb-4 relative z-10">
+            <div class="text-xs font-semibold mb-2 text-left">আরও অপশন</div>
+            <div class="flex flex-wrap gap-1.5 justify-center">
+                <button id="x-mist" class="xbtn" onclick="showView('quiz');startMistakes()">❌ ভুলের তালিকা (<span id="x-mist-n">0</span>)</button>
+                <button id="x-listen" class="xbtn" onclick="showView('quiz');toggleListen()">🎧 শোনার কুইজ</button>
+                <button id="x-timer" class="xbtn" onclick="showView('quiz');startChallenge()">⏱ ৬০ সেকেন্ড</button>
+                <button id="x-prog" class="xbtn" onclick="showView('quiz');toggleProgress()">📊 অগ্রগতি</button>
+            </div>
+        </div>
+
+        <!-- Quiz Controls Wrapper -->
+        <div id="quiz-controls" class="relative z-10">
+            <!-- Character Set Selector Bar -->
+            <div id="set-selector" class="grid grid-cols-2 sm:grid-cols-4 gap-1 bg-white/5 border border-white/10 rounded-2xl p-1 mb-3">
+                <button id="set-basic-btn" onclick="setCharacterSet('basic')" class="py-2 text-[11px] font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md">
+                    🌸 Basic Hira
+                </button>
+                <button id="set-all-btn" onclick="setCharacterSet('all')" class="py-2 text-[11px] font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white">
+                    🌺 All Hiragana
+                </button>
+                <button id="set-kata-btn" onclick="setCharacterSet('katakana')" class="py-2 text-[11px] font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white">
+                    ⚡ Katakana
+                </button>
+                <button id="set-vocab-btn" onclick="setCharacterSet('vocab')" class="py-2 text-[11px] font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white">
+                    📚 Vocabulary
+                </button>
+            </div>
+
+            <!-- Lesson Selector Bar for Vocabulary Quiz (Shown only when Vocabulary Quiz is active) -->
+            <div id="quiz-lesson-selector" class="hidden flex flex-wrap gap-1 bg-white/5 border border-white/10 rounded-2xl p-1.5 mb-3">
+                <!-- Dynamically populated via JS -->
+            </div>
+
+            <!-- Mode Selector Bar (Random vs Line-wise) -->
+            <div id="mode-selector" class="flex bg-white/5 border border-white/10 rounded-2xl p-1 mb-6">
+                <button id="mode-random-btn" onclick="setMode('random')" class="flex-1 py-2 text-xs font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md">
+                    🔀 Random (এলোমেলো)
+                </button>
+                <button id="mode-line-btn" onclick="setMode('line')" class="flex-1 py-2 text-xs font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white">
+                    📝 Line-wise (লাইন ওয়াইজ)
+                </button>
+            </div>
+        </div>
+
+        <!-- Quiz View -->
+        <div id="quiz-view" class="relative z-10">
+            <div id="x-status" class="text-xs mb-3 min-h-[1rem] opacity-90"></div>
+            <div id="x-panel" class="xpanel hidden text-left text-xs mb-4"></div>
+            <!-- Score & Streak Dashboard with LocalStorage High Scores -->
+            <div class="grid grid-cols-2 gap-4 mb-6">
+                <div id="score-card" class="bg-white/5 border border-white/10 rounded-2xl p-3 text-center transition">
+                    <span id="score-label" class="block text-xs uppercase tracking-wider text-indigo-300 font-semibold">Score</span>
+                    <div class="flex items-baseline justify-center gap-2">
+                        <span id="score" class="text-2xl font-bold text-emerald-400">0</span>
+                        <span class="text-[10px] text-emerald-300/80 font-medium">(Best: <span id="best-score">0</span>)</span>
+                    </div>
+                </div>
+                <div id="streak-card" class="bg-white/5 border border-white/10 rounded-2xl p-3 text-center transition">
+                    <span id="streak-label" class="block text-xs uppercase tracking-wider text-pink-300 font-semibold">Streak</span>
+                    <div class="flex items-baseline justify-center gap-2">
+                        <span id="streak" class="text-2xl font-bold text-pink-400">0 🔥</span>
+                        <span class="text-[10px] text-pink-300/80 font-medium">(Best: <span id="best-streak">0</span>)</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Character / Word Display Card -->
+            <div id="display-card" class="bg-white/5 border border-white/10 rounded-3xl h-44 flex flex-col items-center justify-center mb-6 shadow-none relative overflow-hidden px-3">
+                <span id="mode-indicator" class="absolute top-3 left-4 text-[11px] uppercase tracking-widest text-indigo-300 font-medium">Basic Hiragana • Random</span>
+                <span id="hiragana-char" class="japanese-font text-8xl font-bold text-white tracking-wider animate-pop mt-4 drop-shadow-lg break-words max-w-full">あ</span>
+            </div>
+
+            <!-- Drawing Canvas (Stroke Practice) Modal/Container (Hidden by default) -->
+            <div id="drawing-container" class="hidden mb-6 bg-white/5 border border-white/10 rounded-2xl p-3 relative text-left">
+                <div class="flex justify-between items-center mb-2 px-1">
+                    <span id="drawing-title" class="text-xs font-semibold text-indigo-200">✍️ Stroke Practice (আঁকার বোর্ড)</span>
+                    <div class="flex gap-2">
+                        <button onclick="toggleCanvasGhost()" id="ghost-btn" class="text-[10px] bg-white/10 hover:bg-white/20 border border-white/10 px-2.5 py-1 rounded-md text-indigo-200 transition">👻 Outline: On</button>
+                        <button onclick="clearCanvas()" class="text-[10px] bg-rose-500/20 hover:bg-rose-500/40 text-rose-300 border border-rose-500/30 px-2.5 py-1 rounded-md transition font-medium">🧹 Clear</button>
+                    </div>
+                </div>
+                <div class="relative w-full h-44 bg-black/20 rounded-xl overflow-hidden border border-white/10 flex items-center justify-center">
+                    <!-- Ghost Watermark for tracing -->
+                    <span id="canvas-watermark" class="japanese-font text-8xl font-bold text-white/15 select-none pointer-events-none absolute text-center px-2">あ</span>
+                    <canvas id="paint-canvas" class="w-full h-full cursor-crosshair relative z-10 touch-none"></canvas>
+                </div>
+            </div>
+
+            <!-- Options Container -->
+            <div id="options-container" class="grid grid-cols-2 gap-3 mb-6">
+                <!-- Buttons injected via JS -->
+            </div>
+
+            <!-- Feedback Message -->
+            <div id="feedback" class="h-8 text-sm font-semibold mb-2 transition-all duration-300"></div>
+        </div>
+
+        <!-- Chart View (Hidden by default) -->
+        <div id="chart-view" class="hidden text-left relative z-10">
+            <div class="flex justify-between items-center mb-3">
+                <h2 id="chart-title" class="text-lg font-bold text-indigo-200">Hiragana Chart</h2>
+                <button onclick="showView('quiz')" id="back-btn" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition active:scale-95">🔙 Back to Quiz</button>
+            </div>
+
+            <!-- Chart Internal Selector: Hiragana & Katakana Switch Tabs -->
+            <div id="chart-tabs" class="grid grid-cols-3 gap-1 bg-white/5 border border-white/10 rounded-2xl p-1 mb-3">
+                <button id="chart-tab-basic" onclick="switchChartSet('basic')" class="py-1.5 text-[11px] font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md">
+                    🌸 Basic Hira
+                </button>
+                <button id="chart-tab-all" onclick="switchChartSet('all')" class="py-1.5 text-[11px] font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white">
+                    🌺 All Hira
+                </button>
+                <button id="chart-tab-kata" onclick="switchChartSet('katakana')" class="py-1.5 text-[11px] font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white">
+                    ⚡ Katakana
+                </button>
+            </div>
+
+            <p id="chart-subtitle" class="text-xs text-indigo-300 mb-4">Click any card to explore & listen.</p>
+            <div id="chart-grid" class="grid grid-cols-5 gap-2 max-h-96 overflow-y-auto pr-1">
+                <!-- Chart items injected via JS -->
+            </div>
+        </div>
+
+        <!-- Vocabulary View (Hidden by default) -->
+        <div id="vocab-view" class="hidden text-left relative z-10">
+            <div class="flex justify-between items-center mb-3">
+                <h2 id="vocab-title" class="text-lg font-bold text-indigo-200">📚 Vocabulary (শব্দভাণ্ডার)</h2>
+                <button onclick="showView('quiz')" id="vocab-back-btn" class="text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition active:scale-95">🔙 Back to Quiz</button>
+            </div>
+
+            <input id="vocab-search" type="search" class="xinput" placeholder="🔍 জাপানি বা বাংলা শব্দ লিখে সব লেসনে খুঁজুন…" oninput="renderVocabularyView()">
+            <!-- Vocabulary Lesson Selector Tabs (Dynamically rendered) -->
+            <div id="vocab-lesson-tabs" class="flex flex-wrap gap-1 bg-white/5 border border-white/10 rounded-2xl p-1.5 mb-3">
+                <!-- Lesson tabs injected via JS -->
+            </div>
+
+            <div class="flex items-center justify-between gap-2 mb-3">
+                <p id="vocab-subtitle" class="text-xs text-indigo-300">Click any word to listen 🔊</p>
+                <button onclick="startQuizFromVocabView()" class="text-[11px] bg-pink-600 hover:bg-pink-500 text-white font-semibold px-3 py-1.5 rounded-xl shadow-md transition active:scale-95">
+                    🎯 Quiz This Lesson
+                </button>
+            </div>
+
+            <!-- Vocabulary Items List -->
+            <div id="vocab-list" class="grid grid-cols-1 sm:grid-cols-2 gap-2 max-h-96 overflow-y-auto pr-1">
+                <!-- Vocabulary cards injected via JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Credit -->
+    <footer id="footer-text" class="mt-6 text-xs text-gray-400 relative z-10">
+        Created by <span class="text-indigo-300 font-semibold">SAIFUL</span> 🌸
+    </footer>
+
+    <script>
+        const romajiToBangla = {
+            'a': 'আ', 'i': 'ই', 'u': 'উ', 'e': 'এ', 'o': 'ও',
+            'ka': 'কা', 'ki': 'কি', 'ku': 'কু', 'ke': 'কে', 'ko': 'কো',
+            'sa': 'সা', 'shi': 'শি', 'su': 'সু', 'se': 'সে', 'so': 'সো',
+            'ta': 'তা', 'chi': 'চি', 'tsu': 'ত্সু', 'te': 'তে', 'to': 'তো',
+            'na': 'না', 'ni': 'নি', 'nu': 'নু', 'ne': 'নে', 'no': 'নো',
+            'ha': 'হা', 'hi': 'হি', 'fu': 'ফু', 'he': 'হে', 'ho': 'হো',
+            'ma': 'মা', 'mi': 'মি', 'mu': 'মু', 'me': 'মে', 'mo': 'মো',
+            'ya': 'ইয়া', 'yu': 'ইউ', 'yo': 'ইও',
+            'ra': 'রা', 'ri': 'রি', 'ru': 'রু', 're': 'রে', 'ro': 'রো',
+            'wa': 'ওয়া', 'wo': 'ওও', 'n': 'ন্',
+            'ga': 'গা', 'gi': 'গি', 'gu': 'গু', 'ge': 'গে', 'go': 'গো',
+            'za': 'জা', 'ji': 'জি', 'zu': 'জু', 'ze': 'জে', 'zo': 'জো',
+            'da': 'দা', 'de': 'দে', 'do': 'দো',
+            'ba': 'বা', 'bi': 'বি', 'bu': 'বু', 'be': 'বে', 'bo': 'বো',
+            'pa': 'পা', 'pi': 'পি', 'pu': 'পু', 'pe': 'পে', 'po': 'পো'
+        };
+
+        // ==========================================
+        // VOCABULARY LESSONS DATA
+        // ভবিষ্যতে নতুন লেসন যোগ করতে নিচে 6, 7... এভাবে যোগ করুন
+        // ==========================================
+        const vocabularyLessons = {
+            1: {
+                title: "Lesson 1",
+                items: [
+                    { jp: "わたし", bn: "আমি" },
+                    { jp: "あなた", bn: "তুমি" },
+                    { jp: "あのひと", bn: "ওই ব্যক্তি" },
+                    { jp: "あのかた", bn: "ওই ভদ্রলোক / ভদ্রমহিলা" },
+                    { jp: "～さん", bn: "জনাব / জনাবা" },
+                    { jp: "～ちゃん", bn: "আদরের সম্বোধন" },
+                    { jp: "～じん", bn: "দেশের নাগরিক" },
+                    { jp: "せんせい", bn: "শিক্ষক" },
+                    { jp: "きょうし", bn: "শিক্ষক" },
+                    { jp: "がくせい", bn: "ছাত্র / শিক্ষার্থী" },
+                    { jp: "かいしゃいん", bn: "কোম্পানির কর্মচারী" },
+                    { jp: "しゃいん", bn: "কর্মচারী" },
+                    { jp: "ぎんこういん", bn: "ব্যাংক কর্মচারী" },
+                    { jp: "いしゃ", bn: "ডাক্তার" },
+                    { jp: "けんきゅうしゃ", bn: "গবেষক" },
+                    { jp: "だいがく", bn: "বিশ্ববিদ্যালয়" },
+                    { jp: "びょういん", bn: "হাসপাতাল" },
+                    { jp: "だれ", bn: "কে" },
+                    { jp: "どなた", bn: "কে (সম্মানসূচক)" },
+                    { jp: "～さい", bn: "বছর বয়স" },
+                    { jp: "なんさい", bn: "কত বছর বয়স" },
+                    { jp: "はい", bn: "হ্যাঁ" },
+                    { jp: "いいえ", bn: "না" },
+                    { jp: "はじめまして", bn: "প্রথম পরিচয়ে শুভেচ্ছা" },
+                    { jp: "～からきました", bn: "～ থেকে এসেছি" },
+                    { jp: "どうぞよろしくおねがいします", bn: "আপনার সহযোগিতা কামনা করছি" },
+                    { jp: "しつれいですが", bn: "মাফ করবেন" },
+                    { jp: "おなまえは？", bn: "আপনার নাম কী?" },
+                    { jp: "こちらは～さんです", bn: "ইনি হলেন জনাব / জনাবা ～" }
+                ]
+            },
+            2: {
+                title: "Lesson 2",
+                items: [
+                    { jp: "これ", bn: "এটা" },
+                    { jp: "それ", bn: "সেটা" },
+                    { jp: "あれ", bn: "ওটা" },
+                    { jp: "この～", bn: "এই" },
+                    { jp: "その～", bn: "সেই" },
+                    { jp: "あの～", bn: "ওই" },
+                    { jp: "ほん", bn: "বই" },
+                    { jp: "じしょ", bn: "অভিধান" },
+                    { jp: "ざっし", bn: "ম্যাগাজিন" },
+                    { jp: "しんぶん", bn: "সংবাদপত্র" },
+                    { jp: "ノート", bn: "খাতা" },
+                    { jp: "てちょう", bn: "ব্যক্তিগত নোটবুক" },
+                    { jp: "めいし", bn: "ভিজিটিং কার্ড" },
+                    { jp: "カード", bn: "কার্ড" },
+                    { jp: "えんぴつ", bn: "পেন্সিল" },
+                    { jp: "ボールペン", bn: "বলপেন" },
+                    { jp: "シャープペンシル", bn: "মেকানিক্যাল পেন্সিল" },
+                    { jp: "かぎ", bn: "চাবি" },
+                    { jp: "とけい", bn: "ঘড়ি" },
+                    { jp: "かさ", bn: "ছাতা" },
+                    { jp: "かばん", bn: "ব্যাগ" },
+                    { jp: "CD", bn: "সিডি" },
+                    { jp: "テレビ", bn: "টেলিভিশন" },
+                    { jp: "ラジオ", bn: "রেডিও" },
+                    { jp: "カメラ", bn: "ক্যামেরা" },
+                    { jp: "コンピューター", bn: "কম্পিউটার" },
+                    { jp: "くるま", bn: "গাড়ি" },
+                    { jp: "つくえ", bn: "টেবিল" },
+                    { jp: "いす", bn: "চেয়ার" },
+                    { jp: "チョコレート", bn: "চকলেট" },
+                    { jp: "コーヒー", bn: "কফি" },
+                    { jp: "おみやげ", bn: "উপহার" },
+                    { jp: "えいご", bn: "ইংরেজি ভাষা" },
+                    { jp: "にほんご", bn: "জাপানি ভাষা" },
+                    { jp: "～ご", bn: "ভাষা" },
+                    { jp: "なん", bn: "কী" },
+                    { jp: "そう", bn: "তাই" },
+                    { jp: "あのう", bn: "উম / শুনুন" },
+                    { jp: "えっ", bn: "কী!" },
+                    { jp: "どうぞ", bn: "এই নিন" },
+                    { jp: "ありがとう", bn: "ধন্যবাদ" },
+                    { jp: "ありがとうございます", bn: "অনেক ধন্যবাদ" },
+                    { jp: "そうですか", bn: "তাই নাকি" },
+                    { jp: "ちがいます", bn: "না, তা নয়" },
+                    { jp: "あ", bn: "ওহ!" },
+                    { jp: "これからおせわになります", bn: "এখন থেকে আপনার সহযোগিতা কামনা করছি" },
+                    { jp: "こちらこそ", bn: "আমিও" },
+                    { jp: "どうぞよろしくおねがいします", bn: "দয়া করে ভালো সম্পর্ক রাখবেন" }
+                ]
+            },
+            3: {
+                title: "Lesson 3",
+                items: [
+                    { jp: "ここ", bn: "এখানে" },
+                    { jp: "そこ", bn: "সেখানে" },
+                    { jp: "あそこ", bn: "ওইখানে" },
+                    { jp: "どこ", bn: "কোথায়" },
+                    { jp: "こちら", bn: "এদিকে" },
+                    { jp: "そちら", bn: "সেদিকে" },
+                    { jp: "あちら", bn: "ওইদিকে" },
+                    { jp: "どちら", bn: "কোন দিকে" },
+                    { jp: "きょうしつ", bn: "শ্রেণিকক্ষ" },
+                    { jp: "しょくどう", bn: "খাবার ঘর / ক্যান্টিন" },
+                    { jp: "じむしょ", bn: "অফিস" },
+                    { jp: "かいぎしつ", bn: "সভাকক্ষ" },
+                    { jp: "うけつけ", bn: "অভ্যর্থনা ডেস্ক" },
+                    { jp: "ロビー", bn: "লবি" },
+                    { jp: "へや", bn: "ঘর" },
+                    { jp: "トイレ", bn: "টয়লেট" },
+                    { jp: "おてあらい", bn: "শৌচাগার" },
+                    { jp: "かいだん", bn: "সিঁড়ি" },
+                    { jp: "エレベーター", bn: "লিফট" },
+                    { jp: "エスカレーター", bn: "চলন্ত সিঁড়ি" },
+                    { jp: "じどうはんばいき", bn: "ভেন্ডিং মেশিন" },
+                    { jp: "でんわ", bn: "টেলিফোন" },
+                    { jp: "おくに", bn: "দেশ" },
+                    { jp: "かいしゃ", bn: "কোম্পানি" },
+                    { jp: "うち", bn: "বাড়ি" },
+                    { jp: "くつ", bn: "জুতা" },
+                    { jp: "ネクタイ", bn: "টাই" },
+                    { jp: "ワイン", bn: "ওয়াইন" },
+                    { jp: "うりば", bn: "বিক্রয় বিভাগ" },
+                    { jp: "ちか", bn: "বেসমেন্ট" },
+                    { jp: "いっかい", bn: "প্রথম তলা" },
+                    { jp: "なんがい", bn: "কত তলা" },
+                    { jp: "～えん", bn: "ইয়েন" },
+                    { jp: "いくら", bn: "কত দাম" },
+                    { jp: "ひゃく", bn: "একশ" },
+                    { jp: "せん", bn: "এক হাজার" },
+                    { jp: "まん", bn: "দশ হাজার" },
+                    { jp: "すみません", bn: "মাফ করবেন" },
+                    { jp: "どうも", bn: "ধন্যবাদ" },
+                    { jp: "いらっしゃいませ", bn: "স্বাগতম" },
+                    { jp: "～をみせてください", bn: "দয়া করে দেখান" },
+                    { jp: "じゃ", bn: "তাহলে" },
+                    { jp: "～をください", bn: "দয়া করে দিন" },
+                    { jp: "ジャカルタ", bn: "জাকার্তা" },
+                    { jp: "バンコク", bn: "ব্যাংকক" },
+                    { jp: "ベルリン", bn: "বার্লিন" },
+                    { jp: "しんおおさか", bn: "শিন-ওসাকা" }
+                ]
+            },
+            4: {
+                title: "Lesson 4",
+                items: [
+                    { jp: "おきます", bn: "ঘুম থেকে ওঠা" },
+                    { jp: "ねます", bn: "ঘুমানো" },
+                    { jp: "はたらきます", bn: "কাজ করা" },
+                    { jp: "やすみます", bn: "বিশ্রাম নেওয়া" },
+                    { jp: "べんきょうします", bn: "পড়াশোনা করা" },
+                    { jp: "おわります", bn: "শেষ করা" },
+                    { jp: "デパート", bn: "ডিপার্টমেন্ট স্টোর" },
+                    { jp: "ぎんこう", bn: "ব্যাংক" },
+                    { jp: "ゆうびんきょく", bn: "ডাকঘর" },
+                    { jp: "としょかん", bn: "লাইব্রেরি" },
+                    { jp: "びじゅつかん", bn: "আর্ট গ্যালারি" },
+                    { jp: "いま", bn: "এখন" },
+                    { jp: "～じ", bn: "টা / ঘণ্টা" },
+                    { jp: "～ふん", bn: "মিনিট" },
+                    { jp: "はん", bn: "আধা" },
+                    { jp: "なんじ", bn: "কয়টা বাজে" },
+                    { jp: "なんぷん", bn: "কত মিনিট" },
+                    { jp: "ごぜん", bn: "সকাল" },
+                    { jp: "ごご", bn: "বিকেল" },
+                    { jp: "あさ", bn: "সকাল" },
+                    { jp: "ひる", bn: "দুপুর" },
+                    { jp: "ばん", bn: "রাত" },
+                    { jp: "よる", bn: "রাত" },
+                    { jp: "おととい", bn: "গত পরশু" },
+                    { jp: "きのう", bn: "গতকাল" },
+                    { jp: "きょう", bn: "আজ" },
+                    { jp: "あした", bn: "আগামীকাল" },
+                    { jp: "あさって", bn: "আগামী পরশু" },
+                    { jp: "けさ", bn: "আজ সকালে" },
+                    { jp: "こんばん", bn: "আজ রাতে" },
+                    { jp: "やすみ", bn: "ছুটি / বিশ্রাম" },
+                    { jp: "ひるやすみ", bn: "দুপুরের বিরতি" },
+                    { jp: "しけん", bn: "পরীক্ষা" },
+                    { jp: "かいぎ", bn: "মিটিং" },
+                    { jp: "えいが", bn: "সিনেমা" },
+                    { jp: "まいあさ", bn: "প্রতিদিন সকালে" },
+                    { jp: "まいばん", bn: "প্রতি রাতে" },
+                    { jp: "まいにち", bn: "প্রতিদিন" },
+                    { jp: "げつようび", bn: "সোমবার" },
+                    { jp: "かようび", bn: "মঙ্গলবার" },
+                    { jp: "すいようび", bn: "বুধবার" },
+                    { jp: "もくようび", bn: "বৃহস্পতিবার" },
+                    { jp: "きんようび", bn: "শুক্রবার" },
+                    { jp: "どようび", bn: "শনিবার" },
+                    { jp: "にちようび", bn: "রবিবার" },
+                    { jp: "なんようび", bn: "কী বার" },
+                    { jp: "～から", bn: "থেকে" },
+                    { jp: "～まで", bn: "পর্যন্ত" },
+                    { jp: "～と～", bn: "এবং" },
+                    { jp: "たいへんですね", bn: "খুব কষ্টের ব্যাপার" },
+                    { jp: "ばんごう", bn: "নম্বর" },
+                    { jp: "なんばん", bn: "কত নম্বর" },
+                    { jp: "そちら", bn: "আপনার স্থান" },
+                    { jp: "ニューヨーク", bn: "নিউইয়র্ক" },
+                    { jp: "ペキン", bn: "বেইজিং" },
+                    { jp: "ロサンゼルス", bn: "লস অ্যাঞ্জেলেস" },
+                    { jp: "ロンドン", bn: "লন্ডন" }
+                ]
+            },
+            5: {
+                title: "Lesson 5",
+                items: [
+                    { jp: "いきます", bn: "যাওয়া" },
+                    { jp: "きます", bn: "আসা" },
+                    { jp: "かえります", bn: "ফিরে যাওয়া" },
+                    { jp: "がっこう", bn: "স্কুল" },
+                    { jp: "スーパー", bn: "সুপারমার্কেট" },
+                    { jp: "えき", bn: "স্টেশন" },
+                    { jp: "ひこうき", bn: "বিমান" },
+                    { jp: "ふね", bn: "জাহাজ" },
+                    { jp: "でんしゃ", bn: "ইলেকট্রিক ট্রেন" },
+                    { jp: "ちかてつ", bn: "পাতাল রেল" },
+                    { jp: "しんかんせん", bn: "বুলেট ট্রেন" },
+                    { jp: "バス", bn: "বাস" },
+                    { jp: "タクシー", bn: "ট্যাক্সি" },
+                    { jp: "じてんしゃ", bn: "সাইকেল" },
+                    { jp: "あるいて", bn: "হেঁটে" },
+                    { jp: "ひと", bn: "মানুষ" },
+                    { jp: "ともだち", bn: "বন্ধু" },
+                    { jp: "かれ", bn: "সে (ছেলে)" },
+                    { jp: "かのじょ", bn: "সে (মেয়ে)" },
+                    { jp: "かぞく", bn: "পরিবার" },
+                    { jp: "ひとりで", bn: "একা" },
+                    { jp: "せんしゅう", bn: "গত সপ্তাহ" },
+                    { jp: "こんしゅう", bn: "এই সপ্তাহ" },
+                    { jp: "らいしゅう", bn: "আগামী সপ্তাহ" },
+                    { jp: "せんげつ", bn: "গত মাস" },
+                    { jp: "こんげつ", bn: "এই মাস" },
+                    { jp: "らいげつ", bn: "আগামী মাস" },
+                    { jp: "きょねん", bn: "গত বছর" },
+                    { jp: "ことし", bn: "এই বছর" },
+                    { jp: "らいねん", bn: "আগামী বছর" },
+                    { jp: "～ねん", bn: "বছর" },
+                    { jp: "なんねん", bn: "কত সাল" },
+                    { jp: "いっかげつ", bn: "এক মাস" },
+                    { jp: "～がつ", bn: "মাস" },
+                    { jp: "なんがつ", bn: "কোন মাস" },
+                    { jp: "ついたち", bn: "১ তারিখ" },
+                    { jp: "ふつか", bn: "২ তারিখ" },
+                    { jp: "みっか", bn: "৩ তারিখ" },
+                    { jp: "よっか", bn: "৪ তারিখ" },
+                    { jp: "いつか", bn: "৫ তারিখ" },
+                    { jp: "むいか", bn: "৬ তারিখ" },
+                    { jp: "なのか", bn: "৭ তারিখ" },
+                    { jp: "ようか", bn: "৮ তারিখ" },
+                    { jp: "ここのか", bn: "৯ তারিখ" },
+                    { jp: "とおか", bn: "১০ তারিখ" },
+                    { jp: "じゅうよっか", bn: "১৪ তারিখ" },
+                    { jp: "はつか", bn: "২০ তারিখ" },
+                    { jp: "にじゅうよっか", bn: "২৪ তারিখ" },
+                    { jp: "～にち", bn: "তারিখ / দিন" },
+                    { jp: "なんにち", bn: "কত তারিখ" },
+                    { jp: "いつ", bn: "কখন" },
+                    { jp: "たんじょうび", bn: "জন্মদিন" },
+                    { jp: "そうですね", bn: "হ্যাঁ, ঠিক বলেছেন" },
+                    { jp: "どうもありがとうございました", bn: "অনেক অনেক ধন্যবাদ" },
+                    { jp: "どういたしまして", bn: "আপনাকে স্বাগতম" }
+                ]
+            }
+        };
+
+        function getDisplayLabel(romaji) {
+            if (isBengaliMode) {
+                return romajiToBangla[romaji] || romaji;
+            }
+            return romaji;
+        }
+
+        const basicHiragana = [
+            { kana: 'あ', romaji: 'a' }, { kana: 'い', romaji: 'i' }, { kana: 'う', romaji: 'u' }, { kana: 'え', romaji: 'e' }, { kana: 'お', romaji: 'o' },
+            { kana: 'か', romaji: 'ka' }, { kana: 'き', romaji: 'ki' }, { kana: 'く', romaji: 'ku' }, { kana: 'け', romaji: 'ke' }, { kana: 'こ', romaji: 'ko' },
+            { kana: 'さ', romaji: 'sa' }, { kana: 'し', romaji: 'shi' }, { kana: 'す', romaji: 'su' }, { kana: 'せ', romaji: 'se' }, { kana: 'そ', romaji: 'so' },
+            { kana: 'た', romaji: 'ta' }, { kana: 'ち', romaji: 'chi' }, { kana: 'つ', romaji: 'tsu' }, { kana: 'て', romaji: 'te' }, { kana: 'と', romaji: 'to' },
+            { kana: 'な', romaji: 'na' }, { kana: 'に', romaji: 'ni' }, { kana: 'ぬ', romaji: 'nu' }, { kana: 'ね', romaji: 'ne' }, { kana: 'の', romaji: 'no' },
+            { kana: 'は', romaji: 'ha' }, { kana: 'ひ', romaji: 'hi' }, { kana: 'ふ', romaji: 'fu' }, { kana: 'へ', romaji: 'he' }, { kana: 'ほ', romaji: 'ho' },
+            { kana: 'ま', romaji: 'ma' }, { kana: 'み', romaji: 'mi' }, { kana: 'む', romaji: 'mu' }, { kana: 'め', romaji: 'me' }, { kana: 'も', romaji: 'mo' },
+            { kana: 'や', romaji: 'ya' }, { kana: 'ゆ', romaji: 'yu' }, { kana: 'よ', romaji: 'yo' },
+            { kana: 'ら', romaji: 'ra' }, { kana: 'り', romaji: 'ri' }, { kana: 'る', romaji: 'ru' }, { kana: 'れ', romaji: 're' }, { kana: 'ろ', romaji: 'ro' },
+            { kana: 'わ', romaji: 'wa' }, { kana: 'を', romaji: 'wo' },
+            { kana: 'ん', romaji: 'n' }
+        ];
+
+        const allHiragana = [
+            ...basicHiragana,
+            { kana: 'が', romaji: 'ga' }, { kana: 'ぎ', romaji: 'gi' }, { kana: 'ぐ', romaji: 'gu' }, { kana: 'げ', romaji: 'ge' }, { kana: 'ご', romaji: 'go' },
+            { kana: 'ざ', romaji: 'za' }, { kana: 'じ', romaji: 'ji' }, { kana: 'ず', romaji: 'zu' }, { kana: 'ぜ', romaji: 'ze' }, { kana: 'ぞ', romaji: 'zo' },
+            { kana: 'だ', romaji: 'da' }, { kana: 'ぢ', romaji: 'ji' }, { kana: 'づ', romaji: 'zu' }, { kana: 'で', romaji: 'de' }, { kana: 'ど', romaji: 'do' },
+            { kana: 'ば', romaji: 'ba' }, { kana: 'び', romaji: 'bi' }, { kana: 'ぶ', romaji: 'bu' }, { kana: 'べ', romaji: 'be' }, { kana: 'ぼ', romaji: 'bo' },
+            { kana: 'ぱ', romaji: 'pa' }, { kana: 'ぴ', romaji: 'pi' }, { kana: 'ぷ', romaji: 'pu' }, { kana: 'ぺ', romaji: 'pe' }, { kana: 'ぽ', romaji: 'po' }
+        ];
+
+        const katakanaList = [
+            { kana: 'ア', romaji: 'a' }, { kana: 'イ', romaji: 'i' }, { kana: 'ウ', romaji: 'u' }, { kana: 'エ', romaji: 'e' }, { kana: 'オ', romaji: 'o' },
+            { kana: 'カ', romaji: 'ka' }, { kana: 'キ', romaji: 'ki' }, { kana: 'ク', romaji: 'ku' }, { kana: 'ケ', romaji: 'ke' }, { kana: 'コ', romaji: 'ko' },
+            { kana: 'サ', romaji: 'sa' }, { kana: 'シ', romaji: 'shi' }, { kana: 'ス', romaji: 'su' }, { kana: 'セ', romaji: 'se' }, { kana: 'ソ', romaji: 'so' },
+            { kana: 'タ', romaji: 'ta' }, { kana: 'チ', romaji: 'chi' }, { kana: 'ツ', romaji: 'tsu' }, { kana: 'テ', romaji: 'te' }, { kana: 'ト', romaji: 'to' },
+            { kana: 'ナ', romaji: 'na' }, { kana: 'ニ', romaji: 'ni' }, { kana: 'ヌ', romaji: 'nu' }, { kana: 'ネ', romaji: 'ne' }, { kana: 'ノ', romaji: 'no' },
+            { kana: 'ハ', romaji: 'ha' }, { kana: 'ヒ', romaji: 'hi' }, { kana: 'フ', romaji: 'fu' }, { kana: 'ヘ', romaji: 'he' }, { kana: 'ホ', romaji: 'ho' },
+            { kana: 'マ', romaji: 'ma' }, { kana: 'ミ', romaji: 'mi' }, { kana: 'ム', romaji: 'mu' }, { kana: 'メ', romaji: 'me' }, { kana: 'モ', romaji: 'mo' },
+            { kana: 'ヤ', romaji: 'ya' }, { kana: 'ユ', romaji: 'yu' }, { kana: 'ヨ', romaji: 'yo' },
+            { kana: 'ラ', romaji: 'ra' }, { kana: 'リ', romaji: 'ri' }, { kana: 'ル', romaji: 'ru' }, { kana: 'レ', romaji: 're' }, { kana: 'ロ', romaji: 'ro' },
+            { kana: 'ワ', romaji: 'wa' }, { kana: 'ヲ', romaji: 'wo' },
+            { kana: 'ン', romaji: 'n' }
+        ];
+
+        function getVocabularyQuizList(lessonFilter) {
+            const list = [];
+            const keys = lessonFilter === 'all' ? Object.keys(vocabularyLessons) : [String(lessonFilter)];
+            keys.forEach(k => {
+                if (vocabularyLessons[k]) {
+                    vocabularyLessons[k].items.forEach((item, idx) => {
+                        list.push({
+                            id: `L${k}_${idx}`,
+                            kana: item.jp,
+                            romaji: item.bn,
+                            lesson: k
+                        });
+                    });
+                }
+            });
+            return list;
+        }
+
+        let currentList = basicHiragana;
+        let randomDeck = [];
+        let currentItem = null;
+        let score = 0;
+        let streak = 0;
+        let answered = false;
+        let soundEnabled = true;
+        let audioCtx = null;
+        let mode = 'random';
+        let lineIndex = 0;
+        let currentSetKey = 'basic';
+        let currentQuizLesson = '1'; // 'all' or lesson number ('1', '2', ...)
+        let chartSetKey = 'basic';
+        let vocabViewLesson = '1';
+        let activeView = 'quiz'; // 'quiz', 'chart', 'vocab'
+        let isDarkMode = true;
+        let isBengaliMode = true;
+
+        // --- FEATURES VARIABLES ---
+        let isReverseMode = false;
+        let isDrawingOpen = false;
+        let showGhostOutline = true;
+        let isPainting = false;
+        
+        let savedProgress = {
+            bestScore: 0,
+            bestStreak: 0
+        };
+
+        function loadLocalStorageProgress() {
+            try {
+                const stored = localStorage.getItem('nihongo_master_progress');
+                if (stored) {
+                    savedProgress = JSON.parse(stored);
+                }
+            } catch(e) {}
+            document.getElementById('best-score').textContent = savedProgress.bestScore || 0;
+            document.getElementById('best-streak').textContent = savedProgress.bestStreak || 0;
+        }
+
+        function saveLocalStorageProgress() {
+            try {
+                localStorage.setItem('nihongo_master_progress', JSON.stringify(savedProgress));
+            } catch(e) {}
+        }
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function playClearPronunciation(textToSpeak) {
+            if (!soundEnabled) return;
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.cancel();
+                const cleanText = String(textToSpeak).replace(/～/g, '').replace(/？/g, '');
+                const utterance = new SpeechSynthesisUtterance(cleanText);
+                utterance.lang = 'ja-JP';
+                utterance.rate = 0.75;
+                utterance.pitch = 1;
+                utterance.volume = 1;
+
+                const voices = window.speechSynthesis.getVoices().filter(v => v.lang && (v.lang.startsWith('ja') || v.lang.includes('JP')));
+                const score = v => (/google|premium|enhanced|natural|neural|kyoko|o-ren|nanami|haruka/i.test(v.name) ? 2 : 0) + (v.localService ? 0 : 1);
+                const jaVoice = voices.sort((a, b) => score(b) - score(a))[0];
+                if (jaVoice) {
+                    utterance.voice = jaVoice;
+                }
+
+                window.speechSynthesis.speak(utterance);
+            }
+        }
+
+        if ('speechSynthesis' in window && window.speechSynthesis.onvoiceschanged !== undefined) {
+            window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+        }
+
+        function playSound(type) {
+            if (!soundEnabled) return;
+            initAudio();
+            if (!audioCtx) return;
+
+            try {
+                const osc = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                osc.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+
+                if (type === 'correct') {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.15);
+                    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'wrong') {
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(180, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(110, audioCtx.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.25);
+                }
+            } catch (e) {
+                console.log("Audio error:", e);
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-btn');
+            btn.textContent = soundEnabled ? '🔊' : '🔇';
+        }
+
+        function toggleLanguage() {
+            isBengaliMode = !isBengaliMode;
+            const langBtn = document.getElementById('lang-btn');
+            langBtn.textContent = isBengaliMode ? '🌐 BN' : '🌐 EN';
+            
+            nextQuestion();
+            if (activeView === 'chart') {
+                renderChart();
+            }
+        }
+
+        function toggleReverseMode() {
+            isReverseMode = !isReverseMode;
+            const revBtn = document.getElementById('reverse-btn');
+            revBtn.textContent = isReverseMode ? '🔄 Reverse' : '🔄 Normal';
+            updateHeaderButtonsTheme();
+            nextQuestion();
+        }
+
+        function toggleCanvas() {
+            isDrawingOpen = !isDrawingOpen;
+            const container = document.getElementById('drawing-container');
+            if (isDrawingOpen) {
+                container.classList.remove('hidden');
+                initCanvasSize();
+                updateCanvasWatermark();
+            } else {
+                container.classList.add('hidden');
+            }
+            updateHeaderButtonsTheme();
+        }
+
+        function toggleCanvasGhost() {
+            showGhostOutline = !showGhostOutline;
+            const watermark = document.getElementById('canvas-watermark');
+            const ghostBtn = document.getElementById('ghost-btn');
+            watermark.style.display = showGhostOutline ? 'block' : 'none';
+            ghostBtn.textContent = showGhostOutline ? '👻 Outline: On' : '👻 Outline: Off';
+        }
+
+        function clearCanvas() {
+            const canvas = document.getElementById('paint-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function updateCanvasWatermark() {
+            const wm = document.getElementById('canvas-watermark');
+            if (currentItem) {
+                wm.textContent = currentItem.kana;
+                if (currentSetKey === 'vocab' && currentItem.kana.length > 3) {
+                    wm.className = "japanese-font text-4xl sm:text-5xl font-bold text-white/15 select-none pointer-events-none absolute text-center px-2";
+                } else {
+                    wm.className = "japanese-font text-8xl font-bold text-white/15 select-none pointer-events-none absolute text-center px-2";
+                }
+            }
+            clearCanvas();
+        }
+
+        function initCanvasSize() {
+            const canvas = document.getElementById('paint-canvas');
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+
+        const canvas = document.getElementById('paint-canvas');
+        const ctx = canvas.getContext('2d');
+
+        function startPaint(e) {
+            isPainting = true;
+            ctx.beginPath();
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+            const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+            ctx.moveTo(x, y);
+            drawPaint(e);
+        }
+
+        function stopPaint() {
+            isPainting = false;
+            ctx.beginPath();
+        }
+
+        function drawPaint(e) {
+            if (!isPainting) return;
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+            const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
+
+            ctx.lineWidth = 6;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = isDarkMode ? '#E8A27F' : '#B85637';
+            ctx.lineTo(x, y);
+            ctx.stroke();
+        }
+
+        canvas.addEventListener('pointerdown', startPaint);
+        canvas.addEventListener('pointermove', drawPaint);
+        canvas.addEventListener('pointerup', stopPaint);
+        canvas.addEventListener('pointerleave', stopPaint);
+
+        function updateHeaderButtonsTheme() {
+            const langBtn = document.getElementById('lang-btn');
+            const reverseBtn = document.getElementById('reverse-btn');
+            const drawBtn = document.getElementById('draw-btn');
+            const chartBtn = document.getElementById('chart-btn');
+            const vocabBtn = document.getElementById('vocab-btn');
+            const soundBtn = document.getElementById('sound-btn');
+            const themeBtn = document.getElementById('theme-btn');
+
+            if (isDarkMode) {
+                langBtn.className = "bg-white/10 hover:bg-white/20 border border-white/10 px-2.5 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95";
+                reverseBtn.className = `border border-white/10 px-2.5 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95 ${isReverseMode ? 'bg-pink-600 text-white' : 'bg-white/10 hover:bg-white/20'}`;
+                drawBtn.className = `border border-white/10 px-2.5 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95 ${isDrawingOpen ? 'bg-indigo-600 text-white' : 'bg-white/10 hover:bg-white/20'}`;
+                chartBtn.className = `border border-white/10 px-3 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95 ${activeView === 'chart' ? 'bg-indigo-600 text-white' : 'bg-white/10 hover:bg-white/20'}`;
+                vocabBtn.className = `border border-white/10 px-3 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-inner active:scale-95 ${activeView === 'vocab' ? 'bg-pink-600 text-white' : 'bg-white/10 hover:bg-white/20'}`;
+                soundBtn.className = "bg-white/10 hover:bg-white/20 border border-white/10 p-2.5 rounded-full transition text-sm flex items-center justify-center shadow-inner active:scale-95";
+                themeBtn.className = "bg-white/10 hover:bg-white/20 border border-white/10 p-2.5 rounded-full transition text-sm flex items-center justify-center shadow-inner active:scale-95";
+            } else {
+                langBtn.className = "bg-white hover:bg-gray-100 border border-gray-200 px-2.5 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-sm active:scale-95 text-gray-700";
+                reverseBtn.className = `border border-gray-200 px-2.5 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-sm active:scale-95 ${isReverseMode ? 'bg-pink-600 text-white' : 'bg-white hover:bg-gray-100 text-gray-700'}`;
+                drawBtn.className = `border border-gray-200 px-2.5 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-sm active:scale-95 ${isDrawingOpen ? 'bg-indigo-600 text-white' : 'bg-white hover:bg-gray-100 text-gray-700'}`;
+                chartBtn.className = `border border-gray-200 px-3 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-sm active:scale-95 ${activeView === 'chart' ? 'bg-indigo-600 text-white' : 'bg-white hover:bg-gray-100 text-gray-700'}`;
+                vocabBtn.className = `border border-gray-200 px-3 py-2 rounded-full transition text-xs font-semibold flex items-center gap-1 shadow-sm active:scale-95 ${activeView === 'vocab' ? 'bg-pink-600 text-white' : 'bg-white hover:bg-gray-100 text-gray-700'}`;
+                soundBtn.className = "bg-white hover:bg-gray-100 border border-gray-200 p-2.5 rounded-full transition text-sm flex items-center justify-center shadow-sm active:scale-95 text-gray-700";
+                themeBtn.className = "bg-white hover:bg-gray-100 border border-gray-200 p-2.5 rounded-full transition text-sm flex items-center justify-center shadow-sm active:scale-95 text-gray-700";
+            }
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            const body = document.getElementById('body');
+            const mainCard = document.getElementById('main-card');
+            const themeBtn = document.getElementById('theme-btn');
+            const appTitle = document.getElementById('app-title');
+            const appSubtitle = document.getElementById('app-subtitle');
+            const setSelector = document.getElementById('set-selector');
+            const quizLessonSelector = document.getElementById('quiz-lesson-selector');
+            const modeSelector = document.getElementById('mode-selector');
+            const scoreCard = document.getElementById('score-card');
+            const streakCard = document.getElementById('streak-card');
+            const scoreLabel = document.getElementById('score-label');
+            const streakLabel = document.getElementById('streak-label');
+            const displayCard = document.getElementById('display-card');
+            const modeIndicator = document.getElementById('mode-indicator');
+            const chartTitle = document.getElementById('chart-title');
+            const chartSubtitle = document.getElementById('chart-subtitle');
+            const backBtn = document.getElementById('back-btn');
+            const vocabTitle = document.getElementById('vocab-title');
+            const vocabSubtitle = document.getElementById('vocab-subtitle');
+            const vocabBackBtn = document.getElementById('vocab-back-btn');
+            const vocabLessonTabs = document.getElementById('vocab-lesson-tabs');
+            const footerText = document.getElementById('footer-text');
+            const drawingContainer = document.getElementById('drawing-container');
+            const drawingTitle = document.getElementById('drawing-title');
+            const chartTabs = document.getElementById('chart-tabs');
+
+            themeBtn.textContent = isDarkMode ? '☀️' : '🌙';
+
+            if (isDarkMode) {
+                body.className = "bg-[#262624] min-h-screen flex flex-col items-center justify-center p-4 text-gray-100 overflow-x-hidden transition-colors duration-300";
+                mainCard.className = "max-w-xl w-full bg-[#30302E] border border-white/10 rounded-3xl shadow-lg p-6 sm:p-8 text-center relative overflow-hidden transition-all duration-300";
+                appTitle.className = "text-2xl sm:text-3xl font-extrabold tracking-tight text-white flex items-center gap-2";
+                appSubtitle.className = "text-xs sm:text-sm text-indigo-200 mt-1";
+                setSelector.className = "grid grid-cols-2 sm:grid-cols-4 gap-1 bg-white/5 border border-white/10 rounded-2xl p-1 mb-3";
+                quizLessonSelector.className = `${currentSetKey === 'vocab' ? 'flex' : 'hidden'} flex-wrap gap-1 bg-white/5 border border-white/10 rounded-2xl p-1.5 mb-3`;
+                modeSelector.className = "flex bg-white/5 border border-white/10 rounded-2xl p-1 mb-6";
+                scoreCard.className = "bg-white/5 border border-white/10 rounded-2xl p-3 text-center transition";
+                streakCard.className = "bg-white/5 border border-white/10 rounded-2xl p-3 text-center transition";
+                scoreLabel.className = "block text-xs uppercase tracking-wider text-indigo-300 font-semibold";
+                streakLabel.className = "block text-xs uppercase tracking-wider text-pink-300 font-semibold";
+                displayCard.className = "bg-white/5 border border-white/10 rounded-3xl h-44 flex flex-col items-center justify-center mb-6 shadow-none relative overflow-hidden px-3";
+                modeIndicator.className = "absolute top-3 left-4 text-[11px] uppercase tracking-widest text-indigo-300 font-medium";
+                chartTitle.className = "text-lg font-bold text-indigo-200";
+                chartSubtitle.className = "text-xs text-indigo-300 mb-4";
+                backBtn.className = "text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition active:scale-95";
+                vocabTitle.className = "text-lg font-bold text-indigo-200";
+                vocabSubtitle.className = "text-xs text-indigo-300";
+                vocabBackBtn.className = "text-xs bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg transition active:scale-95";
+                vocabLessonTabs.className = "flex flex-wrap gap-1 bg-white/5 border border-white/10 rounded-2xl p-1.5 mb-3";
+                footerText.className = "mt-6 text-xs text-gray-400 relative z-10";
+                drawingContainer.className = `${isDrawingOpen ? '' : 'hidden'} mb-6 bg-white/5 border border-white/10 rounded-2xl p-3 relative text-left`;
+                drawingTitle.className = "text-xs font-semibold text-indigo-200";
+                chartTabs.className = "grid grid-cols-3 gap-1 bg-white/5 border border-white/10 rounded-2xl p-1 mb-3";
+            } else {
+                body.className = "bg-[#F0EEE6] min-h-screen flex flex-col items-center justify-center p-4 text-gray-800 overflow-x-hidden transition-colors duration-300";
+                mainCard.className = "max-w-xl w-full bg-[#FAF9F5] border border-[#E3E0D5] rounded-3xl shadow-sm p-6 sm:p-8 text-center relative overflow-hidden transition-all duration-300";
+                appTitle.className = "text-2xl sm:text-3xl font-extrabold tracking-tight text-gray-900 flex items-center gap-2";
+                appSubtitle.className = "text-xs sm:text-sm text-indigo-600 mt-1";
+                setSelector.className = "grid grid-cols-2 sm:grid-cols-4 gap-1 bg-gray-100 border border-gray-200 rounded-2xl p-1 mb-3";
+                quizLessonSelector.className = `${currentSetKey === 'vocab' ? 'flex' : 'hidden'} flex-wrap gap-1 bg-gray-100 border border-gray-200 rounded-2xl p-1.5 mb-3`;
+                modeSelector.className = "flex bg-gray-100 border border-gray-200 rounded-2xl p-1 mb-6";
+                scoreCard.className = "bg-white border border-gray-200 rounded-2xl p-3 text-center transition shadow-sm";
+                streakCard.className = "bg-white border border-gray-200 rounded-2xl p-3 text-center transition shadow-sm";
+                scoreLabel.className = "block text-xs uppercase tracking-wider text-indigo-600 font-semibold";
+                streakLabel.className = "block text-xs uppercase tracking-wider text-pink-600 font-semibold";
+                displayCard.className = "bg-white border border-gray-200 rounded-3xl h-44 flex flex-col items-center justify-center mb-6 shadow-sm relative overflow-hidden px-3";
+                modeIndicator.className = "absolute top-3 left-4 text-[11px] uppercase tracking-widest text-indigo-600 font-medium";
+                chartTitle.className = "text-lg font-bold text-indigo-900";
+                chartSubtitle.className = "text-xs text-indigo-600 mb-4";
+                backBtn.className = "text-xs bg-gray-100 hover:bg-gray-200 border border-gray-200 px-3 py-1.5 rounded-lg transition active:scale-95 text-gray-700";
+                vocabTitle.className = "text-lg font-bold text-indigo-900";
+                vocabSubtitle.className = "text-xs text-indigo-600";
+                vocabBackBtn.className = "text-xs bg-gray-100 hover:bg-gray-200 border border-gray-200 px-3 py-1.5 rounded-lg transition active:scale-95 text-gray-700";
+                vocabLessonTabs.className = "flex flex-wrap gap-1 bg-gray-100 border border-gray-200 rounded-2xl p-1.5 mb-3";
+                footerText.className = "mt-6 text-xs text-gray-600 relative z-10";
+                drawingContainer.className = `${isDrawingOpen ? '' : 'hidden'} mb-6 bg-white border border-gray-200 rounded-2xl p-3 relative text-left shadow-sm`;
+                drawingTitle.className = "text-xs font-semibold text-indigo-900";
+                chartTabs.className = "grid grid-cols-3 gap-1 bg-gray-100 border border-gray-200 rounded-2xl p-1 mb-3";
+            }
+            
+            updateHeaderButtonsTheme();
+            updateSetButtonsStyle();
+            renderQuizLessonButtons();
+            updateModeButtonsStyle();
+            updateChartTabsStyle();
+            updateDisplayCardTheme();
+
+            if (activeView === 'chart') {
+                renderChart();
+            } else if (activeView === 'vocab') {
+                renderVocabularyView();
+            } else {
+                renderOptionsStyle();
+            }
+        }
+
+        function updateDisplayCardTheme() {
+            const charEl = document.getElementById('hiragana-char');
+            const sizeClass = getDisplayCharSizeClass(charEl.textContent);
+            const colorClass = isDarkMode ? 'text-white drop-shadow-lg' : 'text-indigo-900 drop-shadow-sm';
+            charEl.className = `japanese-font ${sizeClass} font-bold ${colorClass} tracking-wider mt-4 break-words max-w-full`;
+        }
+
+        function getDisplayCharSizeClass(text) {
+            if (currentSetKey !== 'vocab') {
+                return isReverseMode ? 'text-6xl' : 'text-8xl';
+            }
+            const len = text ? text.length : 0;
+            if (len <= 4) return 'text-5xl sm:text-6xl';
+            if (len <= 9) return 'text-3xl sm:text-4xl';
+            if (len <= 18) return 'text-2xl sm:text-3xl leading-snug';
+            return 'text-lg sm:text-2xl leading-snug';
+        }
+
+        function updateSetButtonsStyle() {
+            const basicBtn = document.getElementById('set-basic-btn');
+            const allBtn = document.getElementById('set-all-btn');
+            const kataBtn = document.getElementById('set-kata-btn');
+            const vocabBtn = document.getElementById('set-vocab-btn');
+
+            [basicBtn, allBtn, kataBtn, vocabBtn].forEach(btn => {
+                if (isDarkMode) {
+                    btn.className = "py-2 text-[11px] font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white";
+                } else {
+                    btn.className = "py-2 text-[11px] font-semibold rounded-xl transition duration-200 text-gray-600 hover:text-gray-900";
+                }
+            });
+
+            if (currentSetKey === 'basic') {
+                basicBtn.className = "py-2 text-[11px] font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md";
+            } else if (currentSetKey === 'all') {
+                allBtn.className = "py-2 text-[11px] font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md";
+            } else if (currentSetKey === 'katakana') {
+                kataBtn.className = "py-2 text-[11px] font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md";
+            } else if (currentSetKey === 'vocab') {
+                vocabBtn.className = "py-2 text-[11px] font-semibold rounded-xl transition duration-200 bg-pink-600 text-white shadow-md";
+            }
+        }
+
+        function renderQuizLessonButtons() {
+            const container = document.getElementById('quiz-lesson-selector');
+            if (currentSetKey !== 'vocab') {
+                container.classList.add('hidden');
+                container.classList.remove('flex');
+                return;
+            }
+            container.classList.remove('hidden');
+            container.classList.add('flex');
+            container.innerHTML = '';
+
+            const options = [{ key: 'all', label: '🌟 All' }];
+            Object.keys(vocabularyLessons).forEach(lessonNum => {
+                options.push({ key: lessonNum, label: `📘 ${vocabularyLessons[lessonNum].title}` });
+            });
+
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.textContent = opt.label;
+                const isActive = String(currentQuizLesson) === String(opt.key);
+                if (isActive) {
+                    btn.className = "flex-1 min-w-[70px] py-1.5 px-2 text-[11px] font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md";
+                } else {
+                    btn.className = isDarkMode
+                        ? "flex-1 min-w-[70px] py-1.5 px-2 text-[11px] font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white hover:bg-white/10"
+                        : "flex-1 min-w-[70px] py-1.5 px-2 text-[11px] font-semibold rounded-xl transition duration-200 text-gray-600 hover:text-gray-900 hover:bg-gray-200/70";
+                }
+                btn.onclick = () => selectQuizLesson(opt.key);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectQuizLesson(lessonKey) {
+            currentQuizLesson = lessonKey;
+            currentList = getVocabularyQuizList(currentQuizLesson);
+            randomDeck = [];
+            lineIndex = 0;
+            renderQuizLessonButtons();
+            updateIndicator();
+            nextQuestion();
+        }
+
+        function updateModeButtonsStyle() {
+            const randBtn = document.getElementById('mode-random-btn');
+            const lineBtn = document.getElementById('mode-line-btn');
+
+            if (mode === 'random') {
+                randBtn.className = "flex-1 py-2 text-xs font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md";
+                lineBtn.className = isDarkMode ? "flex-1 py-2 text-xs font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white" : "flex-1 py-2 text-xs font-semibold rounded-xl transition duration-200 text-gray-600 hover:text-gray-900";
+            } else {
+                lineBtn.className = "flex-1 py-2 text-xs font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md";
+                randBtn.className = isDarkMode ? "flex-1 py-2 text-xs font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white" : "flex-1 py-2 text-xs font-semibold rounded-xl transition duration-200 text-gray-600 hover:text-gray-900";
+            }
+        }
+
+        function updateChartTabsStyle() {
+            const tabBasic = document.getElementById('chart-tab-basic');
+            const tabAll = document.getElementById('chart-tab-all');
+            const tabKata = document.getElementById('chart-tab-kata');
+            if (!tabBasic) return;
+
+            [tabBasic, tabAll, tabKata].forEach(btn => {
+                if (isDarkMode) {
+                    btn.className = "py-1.5 text-[11px] font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white";
+                } else {
+                    btn.className = "py-1.5 text-[11px] font-semibold rounded-xl transition duration-200 text-gray-600 hover:text-gray-900";
+                }
+            });
+
+            const activeTab = chartSetKey === 'basic' ? tabBasic : (chartSetKey === 'all' ? tabAll : tabKata);
+            activeTab.className = "py-1.5 text-[11px] font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md";
+        }
+
+        function switchChartSet(setKey) {
+            chartSetKey = setKey;
+            updateChartTabsStyle();
+            renderChart();
+        }
+
+        function getOptionTextSizeClass() {
+            if (currentSetKey === 'vocab') {
+                return isReverseMode ? 'text-sm sm:text-base leading-snug px-2' : 'text-xs sm:text-sm leading-snug px-2';
+            }
+            return isReverseMode ? 'text-3xl' : 'text-xl';
+        }
+
+        function renderOptionsStyle() {
+            const container = document.getElementById('options-container');
+            const buttons = container.querySelectorAll('button');
+            const textSize = getOptionTextSizeClass();
+            buttons.forEach(btn => {
+                if (isDarkMode) {
+                    btn.className = `bg-white/5 hover:bg-white/15 border border-white/10 text-white font-semibold py-3.5 rounded-2xl transition duration-150 ${textSize} shadow-md active:scale-95 transform hover:-translate-y-0.5 japanese-font break-words`;
+                } else {
+                    btn.className = `bg-white hover:bg-indigo-50 border border-gray-200 text-gray-800 font-semibold py-3.5 rounded-2xl transition duration-150 ${textSize} shadow-sm active:scale-95 transform hover:-translate-y-0.5 japanese-font break-words`;
+                }
+            });
+        }
+
+        function setCharacterSet(setKey) {
+            currentSetKey = setKey;
+            if (setKey === 'basic') {
+                chartSetKey = 'basic';
+                currentList = basicHiragana;
+            } else if (setKey === 'all') {
+                chartSetKey = 'all';
+                currentList = allHiragana;
+            } else if (setKey === 'katakana') {
+                chartSetKey = 'katakana';
+                currentList = katakanaList;
+            } else if (setKey === 'vocab') {
+                currentList = getVocabularyQuizList(currentQuizLesson);
+            }
+            randomDeck = [];
+            lineIndex = 0;
+            updateSetButtonsStyle();
+            renderQuizLessonButtons();
+            updateIndicator();
+            nextQuestion();
+        }
+
+        function setMode(selectedMode) {
+            mode = selectedMode;
+            lineIndex = 0;
+            randomDeck = [];
+            updateModeButtonsStyle();
+            updateIndicator();
+            nextQuestion();
+        }
+
+        function updateIndicator() {
+            const indicator = document.getElementById('mode-indicator');
+            let setName = '';
+            if (currentSetKey === 'basic') setName = 'Basic Hiragana';
+            else if (currentSetKey === 'all') setName = 'All Hiragana';
+            else if (currentSetKey === 'katakana') setName = 'Katakana';
+            else if (currentSetKey === 'vocab') {
+                setName = currentQuizLesson === 'all' ? 'Vocab (All)' : `Vocab (${vocabularyLessons[currentQuizLesson].title})`;
+            }
+            let modeName = mode === 'random' ? 'Random' : `Line-wise (${lineIndex + 1}/${currentList.length})`;
+            let revTag = isReverseMode ? ' • Reverse' : '';
+            indicator.textContent = `${setName} • ${modeName}${revTag}`;
+        }
+
+        function showView(viewName) {
+            activeView = viewName;
+            const quizView = document.getElementById('quiz-view');
+            const quizControls = document.getElementById('quiz-controls');
+            const chartView = document.getElementById('chart-view');
+            const vocabView = document.getElementById('vocab-view');
+
+            quizView.classList.add('hidden');
+            quizControls.classList.add('hidden');
+            chartView.classList.add('hidden');
+            vocabView.classList.add('hidden');
+
+            if (viewName === 'quiz') {
+                quizView.classList.remove('hidden');
+                quizControls.classList.remove('hidden');
+            } else if (viewName === 'chart') {
+                chartView.classList.remove('hidden');
+                updateChartTabsStyle();
+                renderChart();
+            } else if (viewName === 'vocab') {
+                vocabView.classList.remove('hidden');
+                renderVocabularyView();
+            }
+            updateHeaderButtonsTheme();
+        }
+
+        function toggleChart() {
+            showView(activeView === 'chart' ? 'quiz' : 'chart');
+        }
+
+        function toggleVocabulary() {
+            showView(activeView === 'vocab' ? 'quiz' : 'vocab');
+        }
+
+        function renderChart() {
+            const grid = document.getElementById('chart-grid');
+            const title = document.getElementById('chart-title');
+            
+            let targetList = basicHiragana;
+            let setName = 'Basic Hiragana';
+            if (chartSetKey === 'all') {
+                targetList = allHiragana;
+                setName = 'All Hiragana';
+            } else if (chartSetKey === 'katakana') {
+                targetList = katakanaList;
+                setName = 'Katakana';
+            }
+
+            title.textContent = `${setName} Chart`;
+            grid.innerHTML = '';
+
+            targetList.forEach((item) => {
+                const card = document.createElement('div');
+                if (isDarkMode) {
+                    card.className = "bg-white/5 border border-white/10 rounded-xl p-2 text-center flex flex-col items-center justify-center hover:bg-white/20 transition cursor-pointer select-none active:scale-95";
+                } else {
+                    card.className = "bg-white border border-gray-200 rounded-xl p-2 text-center flex flex-col items-center justify-center hover:bg-indigo-50 transition shadow-sm cursor-pointer select-none active:scale-95";
+                }
+
+                const banglaSound = romajiToBangla[item.romaji] || item.romaji;
+                
+                card.innerHTML = `
+                    <span class="japanese-font text-2xl font-bold ${isDarkMode ? 'text-white' : 'text-indigo-900'} inline-block">${item.kana}</span>
+                    <span class="text-[11px] font-bold ${isDarkMode ? 'text-indigo-300' : 'text-indigo-600'} leading-tight mt-0.5">${item.romaji}</span>
+                    <span class="text-[10px] font-medium ${isDarkMode ? 'text-pink-300' : 'text-pink-600'} leading-tight">${banglaSound}</span>
+                `;
+
+                card.onclick = () => {
+                    const charSpan = card.querySelector('.japanese-font');
+                    charSpan.classList.remove('animate-char-tap');
+                    void charSpan.offsetWidth;
+                    charSpan.classList.add('animate-char-tap');
+                    
+                    playClearPronunciation(item.kana);
+                };
+
+                grid.appendChild(card);
+            });
+        }
+
+        function renderVocabularyView() {
+            const tabsContainer = document.getElementById('vocab-lesson-tabs');
+            const listContainer = document.getElementById('vocab-list');
+            const subtitle = document.getElementById('vocab-subtitle');
+
+            tabsContainer.innerHTML = '';
+            Object.keys(vocabularyLessons).forEach(lessonNum => {
+                const btn = document.createElement('button');
+                btn.textContent = vocabularyLessons[lessonNum].title;
+                const isActive = String(vocabViewLesson) === String(lessonNum);
+                if (isActive) {
+                    btn.className = "flex-1 min-w-[75px] py-1.5 px-2.5 text-[11px] font-semibold rounded-xl transition duration-200 bg-indigo-600 text-white shadow-md";
+                } else {
+                    btn.className = isDarkMode
+                        ? "flex-1 min-w-[75px] py-1.5 px-2.5 text-[11px] font-semibold rounded-xl transition duration-200 text-indigo-200 hover:text-white hover:bg-white/10"
+                        : "flex-1 min-w-[75px] py-1.5 px-2.5 text-[11px] font-semibold rounded-xl transition duration-200 text-gray-600 hover:text-gray-900 hover:bg-gray-200/70";
+                }
+                btn.onclick = () => {
+                    vocabViewLesson = lessonNum;
+                    renderVocabularyView();
+                };
+                tabsContainer.appendChild(btn);
+            });
+
+            const currentLessonObj = vocabularyLessons[vocabViewLesson];
+            subtitle.textContent = `${currentLessonObj.items.length} words • Tap word to listen 🔊`;
+
+            listContainer.innerHTML = '';
+            currentLessonObj.items.forEach(item => {
+                const card = document.createElement('div');
+                if (isDarkMode) {
+                    card.className = "bg-white/5 border border-white/10 rounded-xl p-3 flex items-center justify-between gap-2 hover:bg-white/15 transition cursor-pointer select-none active:scale-95";
+                } else {
+                    card.className = "bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-2 hover:bg-indigo-50 transition shadow-sm cursor-pointer select-none active:scale-95";
+                }
+
+                card.innerHTML = `
+                    <div class="text-left overflow-hidden">
+                        <div class="japanese-font text-base font-bold ${isDarkMode ? 'text-white' : 'text-indigo-900'} break-words">${item.jp}</div>
+                        <div class="text-xs font-medium ${isDarkMode ? 'text-pink-300' : 'text-pink-600'} mt-0.5 break-words">${item.bn}</div>
+                    </div>
+                    <span class="text-sm opacity-70 shrink-0">🔊</span>
+                `;
+
+                card.onclick = () => {
+                    const jpEl = card.querySelector('.japanese-font');
+                    jpEl.classList.remove('animate-char-tap');
+                    void jpEl.offsetWidth;
+                    jpEl.classList.add('animate-char-tap');
+                    playClearPronunciation(item.jp);
+                };
+
+                listContainer.appendChild(card);
+            });
+        }
+
+        function startQuizFromVocabView() {
+            currentQuizLesson = String(vocabViewLesson);
+            setCharacterSet('vocab');
+            showView('quiz');
+        }
+
+        function shuffleArray(array) {
+            const arr = [...array];
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        function getNextRandomKana() {
+            if (randomDeck.length === 0) {
+                randomDeck = shuffleArray(currentList);
+                if (currentItem && randomDeck.length > 1 && randomDeck[randomDeck.length - 1].kana === currentItem.kana) {
+                    const temp = randomDeck[randomDeck.length - 1];
+                    randomDeck[randomDeck.length - 1] = randomDeck[0];
+                    randomDeck[0] = temp;
+                }
+            }
+            return randomDeck.pop();
+        }
+
+        function nextQuestion() {
+            initAudio();
+            answered = false;
+            document.getElementById('feedback').textContent = '';
+
+            if (mode === 'random') {
+                currentItem = getNextRandomKana();
+            } else {
+                currentItem = currentList[lineIndex];
+                lineIndex = (lineIndex + 1) % currentList.length;
+            }
+            
+            updateIndicator();
+
+            const charEl = document.getElementById('hiragana-char');
+            charEl.classList.remove('animate-pop');
+            void charEl.offsetWidth;
+
+            const displayText = isReverseMode
+                ? (currentSetKey === 'vocab' ? currentItem.romaji : getDisplayLabel(currentItem.romaji))
+                : currentItem.kana;
+
+            charEl.textContent = displayText;
+            const sizeClass = getDisplayCharSizeClass(displayText);
+            const colorClass = isDarkMode ? 'text-white drop-shadow-lg' : 'text-indigo-900 drop-shadow-sm';
+            charEl.className = `japanese-font ${sizeClass} font-bold ${colorClass} tracking-wider animate-pop mt-4 break-words max-w-full`;
+
+            if (isDrawingOpen) {
+                updateCanvasWatermark();
+            }
+
+            // ভুল অপশন নির্বাচন (একই অর্থ বা একই জাপানিজ শব্দ যেন ডুপ্লিকেট না হয়)
+            const seenAnswers = new Set([currentItem.romaji]);
+            const seenKana = new Set([currentItem.kana]);
+            const wrongOptions = [];
+            const shuffledPool = shuffleArray(currentList);
+
+            for (const opt of shuffledPool) {
+                if (!seenAnswers.has(opt.romaji) && !seenKana.has(opt.kana)) {
+                    seenAnswers.add(opt.romaji);
+                    seenKana.add(opt.kana);
+                    wrongOptions.push(opt);
+                    if (wrongOptions.length === 3) break;
+                }
+            }
+
+            let options = shuffleArray([...wrongOptions, currentItem]);
+
+            const container = document.getElementById('options-container');
+            container.innerHTML = '';
+
+            const textSize = getOptionTextSizeClass();
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                if (isReverseMode) {
+                    btn.textContent = opt.kana;
+                } else {
+                    btn.textContent = currentSetKey === 'vocab' ? opt.romaji : getDisplayLabel(opt.romaji);
+                }
+                btn.dataset.answerKey = opt.kana + '||' + opt.romaji;
+                
+                if (isDarkMode) {
+                    btn.className = `bg-white/5 hover:bg-white/15 border border-white/10 text-white font-semibold py-3.5 rounded-2xl transition duration-150 ${textSize} shadow-md active:scale-95 transform hover:-translate-y-0.5 japanese-font break-words`;
+                } else {
+                    btn.className = `bg-white hover:bg-indigo-50 border border-gray-200 text-gray-800 font-semibold py-3.5 rounded-2xl transition duration-150 ${textSize} shadow-sm active:scale-95 transform hover:-translate-y-0.5 japanese-font break-words`;
+                }
+                btn.onclick = () => checkAnswer(opt, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function checkAnswer(selectedOpt, btnElement) {
+            if (answered) return;
+            answered = true;
+
+            const allButtons = document.getElementById('options-container').querySelectorAll('button');
+            const isCorrect = (selectedOpt.kana === currentItem.kana && selectedOpt.romaji === currentItem.romaji);
+            const resultTextSize = currentSetKey === 'vocab' ? 'text-sm sm:text-base leading-snug px-2' : 'text-2xl';
+
+            if (isCorrect) {
+                score++;
+                streak++;
+
+                if (score > (savedProgress.bestScore || 0)) {
+                    savedProgress.bestScore = score;
+                    document.getElementById('best-score').textContent = score;
+                }
+                if (streak > (savedProgress.bestStreak || 0)) {
+                    savedProgress.bestStreak = streak;
+                    document.getElementById('best-streak').textContent = streak;
+                }
+                saveLocalStorageProgress();
+
+                playSound('correct');
+                playClearPronunciation(currentItem.kana);
+
+                btnElement.className = isDarkMode 
+                    ? `bg-emerald-500/30 border border-emerald-400 text-emerald-300 font-bold py-3.5 rounded-2xl ${resultTextSize} shadow-lg shadow-emerald-500/20 transform scale-105 transition japanese-font break-words`
+                    : `bg-emerald-100 border border-emerald-400 text-emerald-800 font-bold py-3.5 rounded-2xl ${resultTextSize} shadow-md transform scale-105 transition japanese-font break-words`;
+                document.getElementById('feedback').textContent = "✨ Correct! 素晴らしい!";
+                document.getElementById('feedback').className = "h-8 text-sm font-semibold mb-2 text-emerald-400 animate-pulse";
+                
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1000);
+            } else {
+                streak = 0;
+                playSound('wrong');
+                btnElement.className = isDarkMode
+                    ? `bg-rose-500/30 border border-rose-400 text-rose-300 font-bold py-3.5 rounded-2xl ${resultTextSize} shadow-lg shadow-rose-500/20 japanese-font break-words`
+                    : `bg-rose-100 border border-rose-400 text-rose-800 font-bold py-3.5 rounded-2xl ${resultTextSize} shadow-md japanese-font break-words`;
+                
+                const targetKey = currentItem.kana + '||' + currentItem.romaji;
+                allButtons.forEach(btn => {
+                    if (btn.dataset.answerKey === targetKey) {
+                        btn.className = isDarkMode
+                            ? `bg-emerald-500/30 border border-emerald-400 text-emerald-300 font-bold py-3.5 rounded-2xl ${resultTextSize} shadow-lg shadow-emerald-500/20 japanese-font break-words`
+                            : `bg-emerald-100 border border-emerald-400 text-emerald-800 font-bold py-3.5 rounded-2xl ${resultTextSize} shadow-md japanese-font break-words`;
+                    }
+                });
+
+                const correctDisplay = isReverseMode
+                    ? currentItem.kana
+                    : (currentSetKey === 'vocab' ? currentItem.romaji : getDisplayLabel(currentItem.romaji));
+                document.getElementById('feedback').textContent = `❌ Incorrect. It was "${correctDisplay}".`;
+                document.getElementById('feedback').className = "h-8 text-sm font-semibold mb-2 text-rose-500";
+
+                setTimeout(() => {
+                    nextQuestion();
+                }, 1500);
+            }
+
+            document.getElementById('score').textContent = score;
+            document.getElementById('streak').textContent = streak + " 🔥";
+        }
+
+
+        // ==========================================
+        // নতুন ফিচার: ভুলের তালিকা, শোনার কুইজ, ৬০ সেকেন্ড চ্যালেঞ্জ,
+        // দৈনিক লক্ষ্য, অগ্রগতি/ব্যাজ, ব্যাকআপ, ভোকাবুলারি সার্চ
+        // ==========================================
+        const todayStr = () => new Date().toISOString().slice(0, 10);
+        const xKey = (it) => it.kana + '||' + it.romaji;
+
+        function ensureX() {
+            const d = savedProgress;
+            d.mistakes = d.mistakes || {};
+            d.stats = d.stats || {};
+            d.goal = d.goal || 20;
+            d.total = d.total || 0;
+            d.totalCorrect = d.totalCorrect || 0;
+            d.bestChallenge = d.bestChallenge || 0;
+            if (!d.daily || d.daily.date !== todayStr()) d.daily = { date: todayStr(), count: 0 };
+        }
+
+        let listenMode = false, chActive = false, chLeft = 0, chCorrect = 0, chTimer = null, xMessage = '';
+
+        function setStatus(msg) { xMessage = msg; updateX(); }
+
+        function updateX() {
+            ensureX();
+            document.getElementById('x-mist-n').textContent = Object.keys(savedProgress.mistakes).length;
+            document.getElementById('x-listen').classList.toggle('on', listenMode);
+            document.getElementById('x-timer').classList.toggle('on', chActive);
+            document.getElementById('x-prog').classList.toggle('on', !document.getElementById('x-panel').classList.contains('hidden'));
+            const d = savedProgress.daily;
+            let line = chActive
+                ? `⏱ ${chLeft} সেকেন্ড বাকি • সঠিক: ${chCorrect}`
+                : (xMessage || `🎯 আজকের লক্ষ্য: ${d.count}/${savedProgress.goal}${d.count >= savedProgress.goal ? ' ✅ সম্পন্ন!' : ''}`);
+            document.getElementById('x-status').textContent = line;
+        }
+
+        // --- উত্তর যাচাই: পরিসংখ্যান, ভুলের তালিকা, দৈনিক লক্ষ্য, চ্যালেঞ্জ ---
+        const _checkAnswer = checkAnswer;
+        checkAnswer = function (selectedOpt, btnElement) {
+            if (answered) return;
+            ensureX();
+            const key = xKey(currentItem);
+            const ok = selectedOpt.kana === currentItem.kana && selectedOpt.romaji === currentItem.romaji;
+            const st = savedProgress.stats[key] = savedProgress.stats[key] || { a: 0, c: 0, k: currentItem.kana, r: currentItem.romaji };
+            st.a++; savedProgress.total++; savedProgress.daily.count++;
+            if (ok) {
+                st.c++; savedProgress.totalCorrect++;
+                if (chActive) chCorrect++;
+                if (currentSetKey === 'mistakes' && savedProgress.mistakes[key]) {
+                    delete savedProgress.mistakes[key];
+                    currentList = currentList.filter(i => xKey(i) !== key);
+                    randomDeck = randomDeck.filter(i => xKey(i) !== key);
+                }
+            } else {
+                savedProgress.mistakes[key] = { kana: currentItem.kana, romaji: currentItem.romaji };
+            }
+            xMessage = '';
+            _checkAnswer(selectedOpt, btnElement);
+            saveLocalStorageProgress();
+            updateX();
+            if (!document.getElementById('x-panel').classList.contains('hidden')) renderProgress();
+        };
+
+        // --- নতুন প্রশ্ন: শোনার কুইজ ও ভুলের তালিকা শেষ হলে ফেরা ---
+        const _nextQuestion = nextQuestion;
+        nextQuestion = function () {
+            if (currentSetKey === 'mistakes' && currentList.length < 4) {
+                setCharacterSet('basic');
+                setStatus('🎉 ভুলের তালিকা প্রায় শেষ! সাধারণ কুইজে ফেরা হলো।');
+                return;
+            }
+            _nextQuestion();
+            const c = document.getElementById('hiragana-char');
+            if (listenMode) {
+                c.textContent = '🔊';
+                c.style.fontSize = '3.5rem';
+                c.style.cursor = 'pointer';
+                c.onclick = () => playClearPronunciation(currentItem.kana);
+                setTimeout(() => playClearPronunciation(currentItem.kana), 250);
+            } else {
+                c.style.fontSize = ''; c.style.cursor = ''; c.onclick = null;
+            }
+        };
+
+        const _updateIndicator = updateIndicator;
+        updateIndicator = function () {
+            _updateIndicator();
+            if (currentSetKey === 'mistakes') {
+                const el = document.getElementById('mode-indicator');
+                el.textContent = el.textContent.replace(/^\s*•\s*/, 'ভুলের তালিকা • ');
+            }
+        };
+
+        function toggleListen() {
+            listenMode = !listenMode;
+            setStatus(listenMode ? '🎧 শব্দ শুনে সঠিক উত্তর বেছে নাও। 🔊 চাপলে আবার শুনবে।' : '');
+            nextQuestion();
+        }
+
+        function startMistakes() {
+            ensureX();
+            const arr = Object.values(savedProgress.mistakes);
+            if (arr.length < 4) {
+                setStatus(`ভুলের তালিকায় কমপক্ষে ৪টি আইটেম জমলে এই অনুশীলন চালু হবে (এখন জমা: ${arr.length})।`);
+                return;
+            }
+            currentSetKey = 'mistakes';
+            currentList = arr.map(m => ({ kana: m.kana, romaji: m.romaji }));
+            randomDeck = []; lineIndex = 0;
+            updateSetButtonsStyle();
+            setStatus('');
+            updateIndicator();
+            nextQuestion();
+        }
+
+        // --- ৬০ সেকেন্ড চ্যালেঞ্জ ---
+        function startChallenge() {
+            if (chActive) { endChallenge(); return; }
+            ensureX();
+            chActive = true; chLeft = 60; chCorrect = 0; xMessage = '';
+            score = 0; streak = 0;
+            document.getElementById('score').textContent = 0;
+            document.getElementById('streak').textContent = '0 🔥';
+            clearInterval(chTimer);
+            chTimer = setInterval(() => { chLeft--; if (chLeft <= 0) endChallenge(); else updateX(); }, 1000);
+            nextQuestion();
+            updateX();
+        }
+
+        function endChallenge() {
+            clearInterval(chTimer);
+            const wasActive = chActive;
+            chActive = false;
+            if (!wasActive) return;
+            ensureX();
+            const isBest = chCorrect > savedProgress.bestChallenge;
+            if (isBest) savedProgress.bestChallenge = chCorrect;
+            saveLocalStorageProgress();
+            setStatus(`⏱ সময় শেষ! ৬০ সেকেন্ডে সঠিক উত্তর: ${chCorrect}${isBest ? ' 🏆 নতুন সেরা স্কোর!' : ` (সেরা: ${savedProgress.bestChallenge})`}`);
+        }
+
+        // --- অগ্রগতি, ব্যাজ, দুর্বল অক্ষর, ব্যাকআপ ---
+        function toggleMore() {
+            const open = document.getElementById('more-panel').classList.toggle('hidden') === false;
+            document.getElementById('more-btn').classList.toggle('on', open);
+        }
+
+        function toggleProgress() {
+            const panel = document.getElementById('x-panel');
+            panel.classList.toggle('hidden');
+            if (!panel.classList.contains('hidden')) renderProgress();
+            updateX();
+        }
+
+        function cycleGoal() {
+            const goals = [10, 20, 30, 50, 100];
+            savedProgress.goal = goals[(goals.indexOf(savedProgress.goal) + 1) % goals.length];
+            saveLocalStorageProgress(); updateX(); renderProgress();
+        }
+
+        function renderProgress() {
+            ensureX();
+            const d = savedProgress, pct = Math.min(100, Math.round(d.daily.count / d.goal * 100));
+            const acc = d.total ? Math.round(d.totalCorrect / d.total * 100) : 0;
+            const badges = [
+                [d.totalCorrect >= 50, '🌱 ৫০ সঠিক'], [d.totalCorrect >= 200, '🌿 ২০০ সঠিক'], [d.totalCorrect >= 500, '🌳 ৫০০ সঠিক'],
+                [d.bestStreak >= 10, '🔥 ১০ স্ট্রিক'], [d.bestStreak >= 25, '⚡ ২৫ স্ট্রিক'],
+                [d.bestChallenge >= 20, '⏱ ২০+ চ্যালেঞ্জ'], [d.daily.count >= d.goal, '🎯 আজকের লক্ষ্য পূরণ']
+            ];
+            const earned = badges.filter(b => b[0]).map(b => b[1]);
+            const weak = Object.values(d.stats).filter(x => x.a >= 2)
+                .sort((a, b) => (a.c / a.a) - (b.c / b.a)).slice(0, 5);
+            const esc = (t) => String(t).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+            document.getElementById('x-panel').innerHTML = `
+                <div class="flex justify-between items-center mb-1.5">
+                    <b>🎯 আজকের লক্ষ্য: ${d.daily.count}/${d.goal}</b>
+                    <button class="xbtn" onclick="cycleGoal()">লক্ষ্য বদলাও</button>
+                </div>
+                <div class="xbar mb-3"><i style="width:${pct}%"></i></div>
+                <div class="grid grid-cols-2 gap-x-3 gap-y-1 mb-3">
+                    <span>মোট উত্তর: <b>${d.total}</b></span><span>সঠিকের হার: <b>${acc}%</b></span>
+                    <span>সেরা স্ট্রিক: <b>${d.bestStreak || 0}</b></span><span>সেরা ৬০ সেকেন্ড: <b>${d.bestChallenge}</b></span>
+                </div>
+                <div class="mb-3"><b>🏅 ব্যাজ:</b> ${earned.length ? earned.map(esc).join(' • ') : 'এখনো কোনো ব্যাজ নেই, অনুশীলন চালিয়ে যাও!'}</div>
+                <div class="mb-3"><b>দুর্বল ৫টি:</b> ${weak.length ? weak.map(w => `<span class="japanese-font">${esc(w.k)}</span> (${w.c}/${w.a})`).join(' • ') : 'আরও কিছু প্রশ্নের উত্তর দিলে এখানে দেখা যাবে।'}</div>
+                <div class="flex gap-2 flex-wrap">
+                    <button class="xbtn" onclick="exportProgress()">⬇️ ব্যাকআপ নাও</button>
+                    <button class="xbtn" onclick="document.getElementById('x-import').click()">⬆️ ব্যাকআপ ফেরাও</button>
+                    <input id="x-import" type="file" accept="application/json" class="hidden" onchange="importProgress(event)">
+                </div>`;
+        }
+
+        function exportProgress() {
+            const blob = new Blob([JSON.stringify(savedProgress, null, 2)], { type: 'application/json' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'nihongo-progress-' + todayStr() + '.json';
+            a.click();
+            setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+        }
+
+        function importProgress(ev) {
+            const file = ev.target.files && ev.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => {
+                try {
+                    const obj = JSON.parse(reader.result);
+                    if (!obj || typeof obj !== 'object' || Array.isArray(obj)) throw new Error('bad');
+                    savedProgress = obj; ensureX(); saveLocalStorageProgress(); loadLocalStorageProgress();
+                    renderProgress(); setStatus('✅ ব্যাকআপ সফলভাবে ফেরানো হয়েছে।');
+                } catch (e) { setStatus('❌ ফাইলটি পড়া যায়নি। সঠিক ব্যাকআপ ফাইল বেছে নাও।'); }
+            };
+            reader.readAsText(file);
+        }
+
+        // --- ভোকাবুলারি সার্চ (সব লেসনে) ---
+        const _renderVocabularyView = renderVocabularyView;
+        renderVocabularyView = function () {
+            _renderVocabularyView();
+            const q = (document.getElementById('vocab-search').value || '').trim().toLowerCase();
+            if (!q) return;
+            const list = document.getElementById('vocab-list');
+            list.innerHTML = '';
+            let n = 0;
+            Object.keys(vocabularyLessons).forEach(k => {
+                vocabularyLessons[k].items.forEach(item => {
+                    if (!(item.jp.toLowerCase().includes(q) || item.bn.toLowerCase().includes(q))) return;
+                    n++;
+                    const card = document.createElement('div');
+                    card.className = isDarkMode
+                        ? 'bg-white/5 border border-white/10 rounded-xl p-3 flex items-center justify-between gap-2 hover:bg-white/15 transition cursor-pointer select-none active:scale-95'
+                        : 'bg-white border border-gray-200 rounded-xl p-3 flex items-center justify-between gap-2 hover:bg-indigo-50 transition shadow-sm cursor-pointer select-none active:scale-95';
+                    const jp = document.createElement('div');
+                    jp.className = 'japanese-font text-base font-bold break-words ' + (isDarkMode ? 'text-white' : 'text-indigo-900');
+                    jp.textContent = item.jp;
+                    const bn = document.createElement('div');
+                    bn.className = 'text-xs font-medium mt-0.5 break-words ' + (isDarkMode ? 'text-pink-300' : 'text-pink-600');
+                    bn.textContent = item.bn + ' • ' + vocabularyLessons[k].title;
+                    const box = document.createElement('div');
+                    box.className = 'text-left overflow-hidden';
+                    box.append(jp, bn);
+                    const icon = document.createElement('span');
+                    icon.className = 'text-sm opacity-70 shrink-0'; icon.textContent = '🔊';
+                    card.append(box, icon);
+                    card.onclick = () => playClearPronunciation(item.jp);
+                    list.appendChild(card);
+                });
+            });
+            document.getElementById('vocab-subtitle').textContent = n ? `${n} টি ফলাফল • শব্দে চাপলে শুনতে পাবে 🔊` : 'কোনো শব্দ পাওয়া যায়নি।';
+        };
+
+        // Initialize LocalStorage & First Question
+        loadLocalStorageProgress();
+        ensureX();
+        nextQuestion();
+        updateX();
+    </script>
+</body>
+</html>
